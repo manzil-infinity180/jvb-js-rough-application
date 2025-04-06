@@ -5,6 +5,19 @@ Edit : `Status: Not working`
 https://github.com/user-attachments/assets/2406dd04-18b6-48f6-b422-b1d5d4abdd8d
 
 <img width="1582" alt="Screenshot 2025-04-07 at 12 41 41 AM" src="https://github.com/user-attachments/assets/21886640-7d66-4782-80fe-410e8195dece" />
+
+```js
+Problem:
+
+ICE connection state: new => checking => disconnected
+Connection state: new => connecting => failed
+Signaling state: new => stable
+ICE Candidate pair: (not connected)
+• ICE candidate grid
+
+> need to take of this , because without this we can not set the stream back or it is also not gathering the ice too
+> we also getting some 400 response (Not this case, we have some other)
+```
 <img width="1582" alt="Screenshot 2025-04-07 at 12 41 47 AM" src="https://github.com/user-attachments/assets/3b1fb640-f439-4a89-93c8-bc18ac827fee" />
 <img width="1582" alt="Screenshot 2025-04-07 at 12 44 48 AM" src="https://github.com/user-attachments/assets/f9962ded-1c56-4215-9510-11a2fe728c6d" />
 
