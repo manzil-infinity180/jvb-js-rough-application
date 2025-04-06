@@ -1,12 +1,39 @@
-# React + Vite
+```mermaid
+sequenceDiagram
+    participant JitsiClient
+    participant Conference
+    participant WebRTC
+    participant Jitsi Videobridge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+    JitsiClient->>Conference: new Conference(with all details)
+    Conference->>Conference: initializeConference()
+    Conference->>Jitsi Videobridge: POST /colibri/v2/conferences
+    Jitsi Videobridge-->>Conference: Response with endpoints, sources
+    Conference->>Conference: createSDPFromColibri2Response()
+    Conference->>WebRTC: setRemoteDescription(offer)
+    WebRTC->>WebRTC: createAnswer()
+    WebRTC-->>Conference: SDP Answer
+    Conference->>WebRTC: setLocalDescription(answer)
+    Conference->>Jitsi Videobridge: PATCH /conference/v2/conferences/{meeting-id}
 
-Currently, two official plugins are available:
+    Conference->>WebRTC: addTrack()
+    WebRTC->>Conference: onicecandidate (ICE candidates)
+    Conference->>Jitsi Videobridge: Send ICE candidates (PATCH)
+    Jitsi Videobridge-->>Conference: Remote ICE candidates
+    Conference->>WebRTC: addIceCandidate()
+    
+    Conference->>Conference: handleParticipantJoined()
+    Conference->>JitsiClient: triggerEvent('participantJoined')
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+    Jitsi Videobridge-->>Conference: Remote tracks
+    WebRTC-->>Conference: ontrack event
+    Conference->>Conference: handleRemoteTrack()
+    Conference->>JitsiClient: triggerEvent('trackAdded')
 
-## Expanding the ESLint configuration
+    Conference->>Conference: setAudioMuted(true)
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+    Conference->>Conference: Handle leaveConfernce() & handleDisconnect()
+    Conference->>WebRTC: close connection
+    Conference->>Jitsi Videobridge: Close Connection (Expire)
+    Conference->>JitsiClient: triggerEvent('disconnected')
+```
