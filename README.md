@@ -2,7 +2,25 @@ Edit : `Status: Not working`
 
 > I tried to send the all configuration details what described in the test, to post enpoint `colibri/v2/conferences` and then i get the response i take that response convert into the `SDP` using the `sdp-transform` and then i done the `setRemoteDescription` , created answer from client side set it into the `setLocalDescription` and also sending this at some other endpoints to colibri2
 
+
+Update: `12 April` 
+> Pull Request https://github.com/manzil-infinity180/jvb-js-rough-application/pull/1
+
+> Changed some of logic, so i can see the ice candidate state from frontend, again i have problem with ice candidate how i can make it happy i guess i am sending the request body to wrong
+  endpoint that could be the reason
+
+> I see the old colibri1 which send the sdp answer for the patch but what i am doing ??
+
+> making request to create conference and it return the ice information i converted into sdp offer and set into the setRemotedescription and then i created answer and converted into the colibri compatible request body sending to same post but on the same meetind and endpoint 
+and then opening one for tab with new endpoint and doing the same
+
+Edit : `8 April` - `Still not working`
+
 https://github.com/user-attachments/assets/2406dd04-18b6-48f6-b422-b1d5d4abdd8d
+
+Edit : `12 April` - `WIP`
+
+https://github.com/user-attachments/assets/4112301d-dac6-456e-b1be-516a6e24a42c
 
 <img width="1582" alt="Screenshot 2025-04-07 at 12 41 41 AM" src="https://github.com/user-attachments/assets/21886640-7d66-4782-80fe-410e8195dece" />
 
