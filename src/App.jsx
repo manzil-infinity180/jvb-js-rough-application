@@ -1,95 +1,101 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import * as sdpTransform from "sdp-transform";
 import { Video } from "./Video";
 export const confURL = "http://127.0.0.1:8080/colibri/v2/conferences";
-const demo_request_body = {
-  "meeting-id": "beccf2ed-5441-4bfe-96d6-f0f3a6796378",
-  name: "jvbbrewery@internal.auth.localhost",
-  create: true,
-  endpoints: [
-    {
-      create: true,
-      id: "79f02837",
-      "stats-id": "raj-w1o",
-      "muc-role": "moderator",
-      medias: [
-        {
-          type: "audio",
-          "payload-types": [
-            {
-              name: "red",
-              id: "112",
-              channels: "2",
-              clockrate: "48000",
-              parameters: { null: "111/111" },
-            },
-            {
-              name: "opus",
-              id: "111",
-              channels: "2",
-              clockrate: "48000",
-              parameters: { useinbandfec: "1", minptime: "10" },
-              "rtcp-fbs": [{ type: "transport-cc" }],
-            },
-          ],
-          "rtp-hdrexts": [
-            { uri: "urn:ietf:params:rtp-hdrext:ssrc-audio-level", id: 1 },
-            {
-              uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
-              id: 5,
-            },
-          ],
-          "extmap-allow-mixed": true,
-        },
-        {
-          type: "video",
-          "payload-types": [
-            {
-              name: "VP8",
-              id: "100",
-              clockrate: "90000",
-              parameters: { "x-google-start-bitrate": "800" },
-              "rtcp-fbs": [
-                { type: "ccm", subtype: "fir" },
-                { type: "nack" },
-                { type: "nack", subtype: "pli" },
-                { type: "transport-cc" },
-              ],
-            },
-          ],
-          "rtp-hdrexts": [
-            {
-              uri: "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
-              id: 3,
-            },
-            {
-              uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
-              id: 5,
-            },
-          ],
-          "extmap-allow-mixed": true,
-        },
-      ],
-      transport: { "ice-controlling": true },
-      capabilities: ["source-names"],
-    },
-  ],
-  connects: [
-    {
-      url: "wss://example.com/audio",
-      protocol: "mediajson",
-      type: "transcriber",
-      audio: true,
-    },
-    {
-      url: "wss://example.com/video",
-      protocol: "mediajson",
-      type: "recorder",
-      video: true,
-    },
-  ],
-};
+const random = Math.floor(Math.random() * 9) + 1;
+const meeting = "79f027" + random + "d";
+const stats_id = "rahul-w" + random + "o";
+function return_demo_request_body(creation = true) {
+  console.log(meeting);
+  return {
+    "meeting-id": "beccf2ed-5441-4bfe-96d6-f0f3a6796378",
+    name: "jvbbrewery@internal.auth.localhost",
+    create: creation,
+    endpoints: [
+      {
+        create: true,
+        id: meeting,
+        "stats-id": stats_id,
+        "muc-role": "moderator",
+        medias: [
+          {
+            type: "audio",
+            "payload-types": [
+              {
+                name: "red",
+                id: "112",
+                channels: "2",
+                clockrate: "48000",
+                parameters: { null: "111/111" },
+              },
+              {
+                name: "opus",
+                id: "111",
+                channels: "2",
+                clockrate: "48000",
+                parameters: { useinbandfec: "1", minptime: "10" },
+                "rtcp-fbs": [{ type: "transport-cc" }],
+              },
+            ],
+            "rtp-hdrexts": [
+              { uri: "urn:ietf:params:rtp-hdrext:ssrc-audio-level", id: 1 },
+              {
+                uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+                id: 5,
+              },
+            ],
+            "extmap-allow-mixed": true,
+          },
+          {
+            type: "video",
+            "payload-types": [
+              {
+                name: "VP8",
+                id: "100",
+                clockrate: "90000",
+                parameters: { "x-google-start-bitrate": "800" },
+                "rtcp-fbs": [
+                  { type: "ccm", subtype: "fir" },
+                  { type: "nack" },
+                  { type: "nack", subtype: "pli" },
+                  { type: "transport-cc" },
+                ],
+              },
+            ],
+            "rtp-hdrexts": [
+              {
+                uri: "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+                id: 3,
+              },
+              {
+                uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+                id: 5,
+              },
+            ],
+            "extmap-allow-mixed": true,
+          },
+        ],
+        transport: { "ice-controlling": true },
+        capabilities: ["source-names"],
+      },
+    ],
+    connects: [
+      {
+        url: "wss://example.com/audio",
+        protocol: "mediajson",
+        type: "transcriber",
+        audio: true,
+      },
+      {
+        url: "wss://example.com/video",
+        protocol: "mediajson",
+        type: "recorder",
+        video: true,
+      },
+    ],
+  };
+}
 function convertToSDPOffer(serverData) {
   const endpoint = serverData.endpoints[0];
   const transport = endpoint.transport.transport;
@@ -123,17 +129,22 @@ function convertToSDPOffer(serverData) {
       const ssrc = mediaSource.sources[0].ssrc;
       const cname = mediaSource.sources[0].name;
       const codecPayloadType = isAudio ? 111 : 100;
-    
+
       return {
         type: isAudio ? "audio" : "video",
-        port: 9,
+        port: Number(candidates[0].port),
         protocol: "UDP/TLS/RTP/SAVPF",
         payloads: String(codecPayloadType),
         mid,
+        connection: {
+          version: 4,
+          ip: candidates[0].ip,
+        },
         rtcpMux: "rtcp-mux",
         setup: "actpass",
         iceUfrag: ufrag,
         icePwd: pwd,
+        iceOptions: ["trickle"],
         candidates: candidates.map((c) => {
           const mapped = {
             foundation: c.foundation,
@@ -210,10 +221,10 @@ function convertSDPAnswerToCustomJSON(sdpString) {
         id: `generated-${Math.random().toString(36).substr(2, 10)}`, // dummy ID
         priority: cand.priority.toString(),
         type: cand.type,
-        network: "0"
+        network: "0",
       };
-      if (cand.raddr) formatted['rel-addr'] = cand.raddr;
-      if (cand.rport) formatted['rel-port'] = cand.rport.toString();
+      if (cand.raddr) formatted["rel-addr"] = cand.raddr;
+      if (cand.rport) formatted["rel-port"] = cand.rport.toString();
       candidates.push(formatted);
     });
 
@@ -221,9 +232,9 @@ function convertSDPAnswerToCustomJSON(sdpString) {
     const ssrcGroups = {};
     mLine.ssrcs?.forEach((ssrcEntry) => {
       if (!ssrcGroups[ssrcEntry.id]) {
-        ssrcGroups[ssrcEntry.id] = { ssrc: ssrcEntry.id, name: '' };
+        ssrcGroups[ssrcEntry.id] = { ssrc: ssrcEntry.id, name: "" };
       }
-      if (ssrcEntry.attribute === 'cname') {
+      if (ssrcEntry.attribute === "cname") {
         ssrcGroups[ssrcEntry.id].name = ssrcEntry.value;
       }
     });
@@ -232,7 +243,7 @@ function convertSDPAnswerToCustomJSON(sdpString) {
       sources.push({
         sources: [ssrcInfo],
         id: `client-${mid}`,
-        type
+        type,
       });
     });
   });
@@ -242,51 +253,68 @@ function convertSDPAnswerToCustomJSON(sdpString) {
     name: "jvbbrewery@internal.auth.localhost",
     endpoints: [
       {
-        id: `79f0b735`,
-        "stats-id":"rahul-w1o",
-        "muc-role":"moderator",
-        "create": true,
-        "medias":[
-                {
-                  "type":"audio",
-                  "payload-types":[
-                    {
-                      "name": "red", "id": "112", "channels": "2", "clockrate": "48000",
-                      "parameters": { "null": "111/111" }
-                    },
-                    {
-                      "name": "opus", "id": "111", "channels": "2", "clockrate": "48000",
-                      "parameters": {"useinbandfec": "1", "minptime": "10" },
-                      "rtcp-fbs": [{"type": "transport-cc"}]
-                    }
-                  ],
-                  "rtp-hdrexts":[
-                    { "uri":"urn:ietf:params:rtp-hdrext:ssrc-audio-level", "id":1 },
-                    { "uri":"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "id":5 }
-                  ],
-                  "extmap-allow-mixed":true
-                },
-                {
-                  "type": "video",
-                  "payload-types":[
-                    {
-                      "name": "VP8", "id": "100", "clockrate": "90000",
-                      "parameters": {"x-google-start-bitrate": "800"},
-                      "rtcp-fbs":[
-                        { "type": "ccm", "subtype": "fir" },
-                        { "type": "nack" },
-                        { "type": "nack", "subtype": "pli" },
-                        { "type": "transport-cc" }
-                      ]
-                    }
-                  ],
-                  "rtp-hdrexts":[
-                    { "uri":"http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time", "id":3 },
-                    { "uri":"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "id":5 }
-                  ],
-                  "extmap-allow-mixed":true
-                }
-              ],
+        id: meeting,
+        "stats-id": stats_id,
+        "muc-role": "moderator",
+        // "create": true,
+        medias: [
+          {
+            type: "audio",
+            "payload-types": [
+              {
+                name: "red",
+                id: "112",
+                channels: "2",
+                clockrate: "48000",
+                parameters: { null: "111/111" },
+              },
+              {
+                name: "opus",
+                id: "111",
+                channels: "2",
+                clockrate: "48000",
+                parameters: { useinbandfec: "1", minptime: "10" },
+                "rtcp-fbs": [{ type: "transport-cc" }],
+              },
+            ],
+            "rtp-hdrexts": [
+              { uri: "urn:ietf:params:rtp-hdrext:ssrc-audio-level", id: 1 },
+              {
+                uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+                id: 5,
+              },
+            ],
+            "extmap-allow-mixed": true,
+          },
+          {
+            type: "video",
+            "payload-types": [
+              {
+                name: "VP8",
+                id: "100",
+                clockrate: "90000",
+                parameters: { "x-google-start-bitrate": "800" },
+                "rtcp-fbs": [
+                  { type: "ccm", subtype: "fir" },
+                  { type: "nack" },
+                  { type: "nack", subtype: "pli" },
+                  { type: "transport-cc" },
+                ],
+              },
+            ],
+            "rtp-hdrexts": [
+              {
+                uri: "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+                id: 3,
+              },
+              {
+                uri: "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+                id: 5,
+              },
+            ],
+            "extmap-allow-mixed": true,
+          },
+        ],
         transport: {
           transport: {
             candidates,
@@ -300,91 +328,38 @@ function convertSDPAnswerToCustomJSON(sdpString) {
               {
                 fingerprint: fingerprint.hash,
                 setup: fingerprint.setup || "active",
-                hash: fingerprint.type
-              }
-            ]
-          }
+                hash: fingerprint.type,
+              },
+            ],
+          },
         },
-        "capabilities": [ "source-names" ]
-      }
+        capabilities: ["source-names"],
+      },
     ],
-    sources
+    sources,
   };
 }
-
-// let pc = new RTCPeerConnection({
-//   iceServers: [{
-//       urls: "stun:stun.l.google.com:19302",
-//   },],
-// });
-/**
-{
-  urls: "stun:meet-jit-si-turnrelay.jitsi.net:443"
-}
- */
-// const pc = new RTCPeerConnection({
-//   iceServers: [
-//     {
-//       urls: ["stun:meet-jit-si-turnrelay.jitsi.net:443"],
-//     }
-//   ]
-// });
-
 function App() {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [jvbResponseSDPOffer, setJvbResponseSDPOffer] = useState(null);
   const [jvb_sdp, setJvbSDPAnser] = useState(null);
-  // async function createConference() {
-  //   try {
-
-  //     const res = await fetch(confURL, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(demo_request_body),
-  //     });
-  //     console.log(res);
-  //     const data = await res.json();
-  //     console.log(data);
-  //     if (data) {
-  //       setJvbResponse(data);
-  //       const jvb_sdp = convertToSDPOffer(data);
-  //       console.log(jvb_sdp);
-  //       setJvbSDP(jvb_sdp);
-  //       await pc.setRemoteDescription(
-  //         new RTCSessionDescription({ type: "offer", sdp: jvb_sdp })
-  //       );
-  //       const answer = await pc.createAnswer();
-  //       console.log(answer);
-  //       await pc.setLocalDescription(answer);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   window.navigator.mediaDevices
-  //     .getUserMedia({
-  //       video: true,
-  //       audio: true,
-  //     })
-  //     .then((stream) => {
-  //       stream.getTracks().forEach(track => pc.addTrack(track, stream));
-  //       setLocalStream(stream);
-  //     });
-  //   createConference();
-  // }, []);
+  const [startMeeting, setStartMeeting] = useState(false);
+  const [creationOpt, setCreationOpt] = useState(true);
+  const [value, setValue] = useState("yes");
   let pc = new RTCPeerConnection({
     iceServers: [
       {
-        urls: "stun:meet-jit-si-turnrelay.jitsi.net:443",
+        urls: ["stun:stun.l.google.com:19302"],
       },
-      {
-        urls: 'turn:meet-jit-si-turnrelay.jitsi.net:443',
-        username: 'jvb',
-        credential: 'Yl1iCAbM',
-      },
+      // {
+      //   // urls: 'turn:meet-jit-si-turnrelay.jitsi.net:443',
+      //   // username: 'jvb',
+      //   // credential: 'Yl1iCAbM',
+      //   urls: "turn:global.relay.metered.ca:80",
+      //   username: "openrelayproject",
+      //   credential: "openrelayproject",
+      // },
     ],
   });
   useEffect(() => {
@@ -410,7 +385,7 @@ function App() {
         const res = await fetch(confURL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(demo_request_body),
+          body: JSON.stringify(return_demo_request_body(creationOpt)),
         });
 
         const data = await res.json();
@@ -429,16 +404,19 @@ function App() {
         // Create and set local answer
         const answer = await pc.createAnswer();
         console.log(answer);
-        
+
         await pc.setLocalDescription(answer);
-        const SDPtoJSONforColibri = convertSDPAnswerToCustomJSON(answer.sdp)
+        const SDPtoJSONforColibri = convertSDPAnswerToCustomJSON(answer.sdp);
         setJvbSDPAnser(SDPtoJSONforColibri);
         console.log(SDPtoJSONforColibri);
-        const res1 = await fetch(`http://127.0.0.1:8080/colibri/v2/conferences`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(SDPtoJSONforColibri),
-        });
+        const res1 = await fetch(
+          `http://127.0.0.1:8080/colibri/v2/conferences`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(SDPtoJSONforColibri),
+          }
+        );
         console.log(res);
         const data1 = await res1.json();
         console.log(data1);
@@ -454,9 +432,40 @@ function App() {
         console.log(error);
       }
     }
-    start();
-  }, []);
+    if (startMeeting) {
+      start();
+    }
+  }, [startMeeting]);
 
+  function handleSubmit() {
+    console.log(startMeeting);
+    setStartMeeting(true);
+    if (value == "no" || value == "No") {
+      setCreationOpt(false);
+    }
+    console.log(startMeeting);
+  }
+  if (!startMeeting) {
+    return (
+      <>
+        <h1>JVB Video Test</h1>
+        <div>
+          <div
+            style={{
+              display: "flex",
+            }}
+          >
+            <input
+              type="text"
+              onChange={(e) => setValue(e.target.value)}
+              value={value}
+            />
+            <button onClick={handleSubmit}>Change</button>
+          </div>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <h1>JVB Video Test</h1>
